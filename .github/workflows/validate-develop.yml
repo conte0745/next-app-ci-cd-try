@@ -1,6 +1,7 @@
 name: Validate Develop
 
 on:
+  # developブランチのプルリクエストの作成がトリガー
   pull_request:
     branches: [develop]
 
@@ -10,8 +11,23 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Install deps
-        run: yarn install --frozen-lockfile
+
+      - name: Use Node.js 22.12.0
+        uses: actions/setup-node@v3
+        with:
+          node-version: "22.12.0"
+
+      - name: Clean install
+        run: |
+          node -v
+          rm -rf node_modules .prisma
+          yarn install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: yarn prisma generate
+        env:
+          PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING: "1"
+          PRISMA_CLI_QUERY_ENGINE_TYPE: "binary"
 
       - name: Build
         run: yarn build

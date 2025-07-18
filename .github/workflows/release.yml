@@ -1,0 +1,26 @@
+# .github/workflows/deploy-via-ssm.yml
+name: Deploy via SSM
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: AWS CLI セットアップ
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: デプロイコマンドをSSM経由で実行
+        run: |
+          aws ssm send-command \
+            --instance-ids "${{ secrets.INSTANCE_ID }}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "GitHub Actions デプロイ" \
+            --parameters commands=["cd /home/ec2-user/myapp", "git pull origin main", "npm run build", "pm2 restart myapp"] \
+            --output text

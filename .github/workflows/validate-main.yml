@@ -1,6 +1,7 @@
 name: Validate Main
 
 on:
+  # mainブランチのプルリクエストの作成がトリガー
   pull_request:
     branches: [main]
 
@@ -10,11 +11,22 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+
+      - name: Use Node.js 22.12.0
+        uses: actions/setup-node@v3
+        with:
+          node-version: "22.12.0"
+
       - name: Install deps
         run: yarn install --frozen-lockfile
 
+      - name: Generate Prisma Client
+        run: yarn prisma generate
+        env:
+          PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING: "1"
+
       - name: Build
-        run: yarn build
+        run: node -v && yarn build
 
       - name: Run tests
         run: yarn test
