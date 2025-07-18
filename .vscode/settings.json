@@ -1,3 +1,5 @@
 {
-	"cSpell.words": ["chakra"]
+  "cSpell.words": ["chakra"],
+
+  "css.lint.unknownAtRules": "ignore"
 }

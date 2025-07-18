@@ -10,9 +10,15 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model User {
-  id          Int      @id @default(autoincrement())
-  name        String
-  created_at  DateTime @default(now())
+  id         Int      @id @default(autoincrement())
+  name       String
+  created_at DateTime @default(now())
+}
+
+model Todo {
+  id        Int      @id @default(autoincrement())
+  title     String
+  completed Boolean  @default(false)
+  createdAt DateTime @default(now())
 }
