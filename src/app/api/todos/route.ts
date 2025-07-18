@@ -26,7 +26,7 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   const { id, completed } = await req.json();
   if (typeof id !== 'number' || typeof completed !== 'boolean') {
-    return NextResponse.json({ error: '不正なリクエスト' }, { status: 400 });
+    return NextResponse.json({ error: '不正なリクエストです' }, { status: 400 });
   }
   const todo = await prisma.todo.update({ where: { id }, data: { completed } });
   return NextResponse.json(todo);
@@ -36,7 +36,7 @@ export async function PATCH(req: Request) {
 export async function DELETE(req: Request) {
   const { id } = await req.json();
   if (typeof id !== 'number') {
-    return NextResponse.json({ error: '不正なリクエスト' }, { status: 400 });
+    return NextResponse.json({ error: '不正なリクエストです' }, { status: 400 });
   }
   await prisma.todo.update({ where: { id }, data: { isDeleted: true } });
   return NextResponse.json({ ok: true });
