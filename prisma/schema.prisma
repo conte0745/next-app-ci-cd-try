@@ -21,4 +21,5 @@ model Todo {
   title     String
   completed Boolean  @default(false)
   createdAt DateTime @default(now())
+  isDeleted Boolean  @default(false)
 }

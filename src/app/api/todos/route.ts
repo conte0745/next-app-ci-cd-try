@@ -5,7 +5,10 @@ const prisma = new PrismaClient();
 
 // GET: 一覧取得
 export async function GET() {
-  const todos = await prisma.todo.findMany({ orderBy: { createdAt: 'desc' } });
+  const todos = await prisma.todo.findMany({
+    where: { isDeleted: false },
+    orderBy: { createdAt: 'desc' }
+  });
   return NextResponse.json(todos);
 }
 
@@ -29,12 +32,12 @@ export async function PATCH(req: Request) {
   return NextResponse.json(todo);
 }
 
-// DELETE: 削除
+// DELETE: 論理削除
 export async function DELETE(req: Request) {
   const { id } = await req.json();
   if (typeof id !== 'number') {
     return NextResponse.json({ error: '不正なリクエスト' }, { status: 400 });
   }
-  await prisma.todo.delete({ where: { id } });
+  await prisma.todo.update({ where: { id }, data: { isDeleted: true } });
   return NextResponse.json({ ok: true });
 }

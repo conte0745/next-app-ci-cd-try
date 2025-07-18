@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import {
 	Box,
 	Button,
@@ -13,7 +14,7 @@ import {
 } from "@chakra-ui/react";
 import { useColorModeValue } from "@/components/ui/color-mode";
 import { FiTrash2 } from "react-icons/fi";
-import { Toaster, toaster } from "@/components/ui/toaster"
+import { Toaster, toast } from "@/components/ui/toaster"
 
 type Todo = {
 	id: number;
@@ -23,10 +24,30 @@ type Todo = {
 };
 
 export default function TodoApp() {
+	// useColorModeValue をトップレベルで変数化
+	const boxBg = useColorModeValue('white', 'gray.900');
+	const headingColor = useColorModeValue('gray.800', 'gray.100');
+	const inputBg = useColorModeValue('white', 'gray.800');
+	const inputColor = useColorModeValue('gray.900', 'gray.100');
+	const inputFocusBg = useColorModeValue('white', 'gray.700');
+	const inputFocusBorder = useColorModeValue('blue.400', 'blue.300');
+	const inputPlaceholder = useColorModeValue('gray.400', 'gray.500');
+	const borderColor = useColorModeValue('gray.300', 'gray.600');
+	const todoTextDoneColor = useColorModeValue('gray.400', 'gray.500');
+	const todoTextColor = useColorModeValue('gray.900', 'gray.100');
+	const spinnerBg = useColorModeValue('gray.50', 'gray.800');
+	const accentColor = useColorModeValue('#3182ce', '#90cdf4');
+	const checkboxBg = useColorModeValue('#fff', '#1a202c');
+	const checkboxBorderColor = useColorModeValue('#cbd5e1', '#4a5568');
 	const [todos, setTodos] = useState<Todo[]>([]);
-	const [input, setInput] = useState("");
+	// React Hook Form
+	type FormValues = { title: string };
+	const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormValues>({
+		mode: "onSubmit",
+	});
+	// 入力欄への参照（registerから取得）
+	const inputRef = React.useRef<HTMLInputElement>(null);
 	const [loading, setLoading] = useState(false);
-	const [optimisticTodos, setOptimisticTodos] = useState<Todo[] | null>(null);
 
 	// 一覧取得
 	const fetchTodos = async () => {
@@ -42,36 +63,27 @@ export default function TodoApp() {
 		// eslint-disable-next-line
 	}, []);
 
-	// 追加
-	const addTodo = async () => {
-		if (!input.trim()) return;
-		const tempId = Math.random();
-		const optimistic: Todo = {
-			id: tempId,
-			title: input,
-			completed: false,
-			createdAt: new Date().toISOString(),
-		};
-		setOptimisticTodos([optimistic, ...(optimisticTodos ?? todos)]);
-		setInput("");
+	// 追加（react-hook-form対応）
+
+	const addTodo = async (values: FormValues) => {
+		const title = values.title.trim();
+		if (!title) return;
+		reset();
 		try {
 			await fetch("/api/todos", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ title: optimistic.title }),
+				body: JSON.stringify({ title }),
 			});
 			fetchTodos();
 		} catch {
-			setOptimisticTodos(null);
 			fetchTodos();
-			toaster.create({ title: "追加に失敗しました", type: "error" });
+			toast.error("追加に失敗しました");
 		}
 	};
 
 	// 削除
 	const deleteTodo = async (id: number) => {
-		const prev = optimisticTodos ?? todos;
-		setOptimisticTodos(prev.filter((t) => t.id !== id));
 		try {
 			await fetch("/api/todos", {
 				method: "DELETE",
@@ -80,20 +92,14 @@ export default function TodoApp() {
 			});
 			fetchTodos();
 		} catch {
-			setOptimisticTodos(null);
 			fetchTodos();
-			toaster.create({ title: "削除に失敗しました", type: "error" });
+			toast.error("削除に失敗しました");
 		}
 	};
 
 	// 完了切替
 	const toggleTodo = async (id: number, completed: boolean) => {
-		const prev = optimisticTodos ?? todos;
-		setOptimisticTodos(
-			prev.map((t) =>
-				t.id === id ? { ...t, completed: !completed } : t
-			)
-		);
+		const prev = todos;
 		try {
 			await fetch("/api/todos", {
 				method: "PATCH",
@@ -102,13 +108,19 @@ export default function TodoApp() {
 			});
 			fetchTodos();
 		} catch {
-			setOptimisticTodos(null);
 			fetchTodos();
-			toaster.create({ title: "更新に失敗しました", type: "error" });
+			toast.error("更新に失敗しました");
 		}
 	};
 
-	const list = optimisticTodos ?? todos;
+	const list = todos;
+
+	// 送信完了後に入力欄へフォーカス
+	React.useEffect(() => {
+		if (!isSubmitting && inputRef.current) {
+			inputRef.current.focus();
+		}
+	}, [isSubmitting]);
 
 	return (
 		<>
@@ -117,38 +129,51 @@ export default function TodoApp() {
 				maxW="lg"
 				mx="auto"
 				p={{ base: 4, md: 8 }}
-				bg={useColorModeValue('white', 'gray.900')}
+				bg={boxBg}
 				rounded="xl"
 				shadow="lg"
 				mt={10}
 			>
-				<Heading size="lg" mb={6} textAlign="center" color={useColorModeValue('gray.800', 'gray.100')}>
+				<Heading size="lg" mb={6} textAlign="center" color={headingColor}>
 					TODOアプリ
 				</Heading>
-				<Flex gap={2} mb={4}>
-					<Input
-						data-testid="todo-input"
-						value={input}
-						onChange={e => setInput(e.target.value)}
-						placeholder="新しいタスクを入力"
-						onKeyDown={e => {
-							if (e.key === "Enter") addTodo();
-						}}
-						flex={1}
-						bg={useColorModeValue('white', 'gray.800')}
-						color={useColorModeValue('gray.900', 'gray.100')}
-						_focusVisible={{ bg: useColorModeValue('white', 'gray.700'), borderColor: useColorModeValue('blue.400', 'blue.300'), color: useColorModeValue('gray.900', 'gray.100') }}
-						_placeholder={{ color: useColorModeValue('gray.400', 'gray.500') }}
-						borderColor={useColorModeValue('gray.300', 'gray.600')}
-					/>
-					<Button
-						onClick={addTodo}
-						colorScheme="blue"
-						disabled={!input.trim()}
-					>
-						追加
-					</Button>
-				</Flex>
+				<form onSubmit={handleSubmit(addTodo)}>
+					<Flex gap={2} mb={4}>
+						<Input
+							data-testid="todo-input"
+							{...register("title", {
+								required: "タイトルは必須です",
+								maxLength: { value: 191, message: "タイトルは191文字以内で入力してください" },
+							})}
+							ref={e => {
+								register("title").ref(e);
+								inputRef.current = e;
+							}}
+							placeholder="新しいタスクを入力"
+							type="text"
+							flex={1}
+							bg={inputBg}
+							disabled={isSubmitting}
+							_focusVisible={{ bg: inputFocusBg, borderColor: inputFocusBorder, color: inputColor }}
+							_placeholder={{ color: inputPlaceholder }}
+							borderColor={errors.title ? 'red.400' : borderColor}
+							color={errors.title ? 'red.400' : inputColor}
+						/>
+						<Button
+							type="submit"
+							colorScheme="blue"
+							loading={isSubmitting}
+							disabled={isSubmitting}
+						>
+							追加
+						</Button>
+					</Flex>
+					{errors.title && (
+						<Text color="red.400" fontSize="sm" mb={2} data-testid="error-message">
+							{errors.title.message}
+						</Text>
+					)}
+				</form>
 				{loading ? (
 					<Flex justify="center" align="center" py={6}>
 						<Spinner size="lg" />
@@ -156,7 +181,7 @@ export default function TodoApp() {
 				) : (
 					<Box as="ul">
 						{list.length === 0 && (
-							<Box as="li" textAlign="center" color={useColorModeValue('gray.400', 'gray.500')}>
+							<Box as="li" textAlign="center" color={todoTextDoneColor}>
 								タスクがありません
 							</Box>
 						)}
@@ -166,7 +191,7 @@ export default function TodoApp() {
 								key={todo.id}
 								alignItems="center"
 								gap={2}
-								bg={useColorModeValue('gray.50', 'gray.800')}
+								bg={spinnerBg}
 								px={{ base: 2, md: 4 }}
 								py={2}
 								rounded="md"
@@ -176,14 +201,19 @@ export default function TodoApp() {
 									type="checkbox"
 									checked={todo.completed}
 									onChange={() => toggleTodo(todo.id, todo.completed)}
-									style={{ width: 22, height: 22, accentColor: useColorModeValue('#3182ce', '#90cdf4'), marginRight: 10, background: useColorModeValue('#fff', '#1a202c'), borderRadius: 4, border: '1.5px solid', borderColor: useColorModeValue('#cbd5e1', '#4a5568') }}
+									style={{ width: 22, height: 22, accentColor: accentColor, marginRight: 10, background: checkboxBg, borderRadius: 4, border: '1.5px solid', borderColor: borderColor }}
 									aria-label="完了"
 								/>
 								<Text
 									flex={1}
 									fontSize="lg"
 									textDecoration={todo.completed ? "line-through" : "none"}
-									color={todo.completed ? useColorModeValue('gray.400', 'gray.500') : useColorModeValue('gray.900', 'gray.100')}
+									color={todo.completed ? todoTextDoneColor : todoTextColor}
+									truncate
+									maxW={{ base: '140px', sm: '240px', md: '320px', lg: '480px' }}
+									wordBreak="break-all"
+									whiteSpace="pre-line"
+									title={todo.title}
 								>
 									{todo.title}
 								</Text>
