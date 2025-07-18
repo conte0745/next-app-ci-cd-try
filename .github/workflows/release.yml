@@ -22,5 +22,5 @@ jobs:
             --instance-ids "${{ secrets.INSTANCE_ID }}" \
             --document-name "AWS-RunShellScript" \
             --comment "GitHub Actions デプロイ" \
-            --parameters commands=["cd /home/ec2-user/my-app", "bash deploy/deploy.sh"] \
+            --parameters commands=["cd /home/ec2-user/my-app","bash deploy/deploy.sh"] \
             --output text
