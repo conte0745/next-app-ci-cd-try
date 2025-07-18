@@ -14,5 +14,8 @@ jobs:
       - name: Install deps
         run: yarn install --frozen-lockfile
 
+      - name: Generate Prisma Client
+        run: yarn prisma generate
+
       - name: Build
         run: node -v && yarn build
