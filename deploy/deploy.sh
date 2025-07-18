@@ -12,6 +12,20 @@ source /home/ec2-user/my-app/.env
 
 cd $APP_DIR
 
+cd /home/ec2-user/my-app
+
+echo "Pulling latest code..."
+git pull origin main
+
+echo "Installing dependencies..."
+yarn install
+
+echo "Building app..."
+yarn build
+
+echo "Restarting with PM2..."
+pm2 restart my-app
+
 echo "📦 バックアップ開始..."
 mysqldump -h $DB_HOST -u $DB_USER -p$DB_PASS $DB_NAME > $BACKUP_FILE
 echo "✅ バックアップ完了: $BACKUP_FILE"
