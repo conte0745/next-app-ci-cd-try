@@ -1,6 +1,7 @@
 name: Validate Main
 
 on:
+  # mainブランチのプルリクエストの作成がトリガー
   pull_request:
     branches: [main]
 

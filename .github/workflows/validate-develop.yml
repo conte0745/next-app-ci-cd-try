@@ -1,6 +1,7 @@
 name: Validate Develop
 
 on:
+  # developブランチのプルリクエストの作成がトリガー
   pull_request:
     branches: [develop]
 
