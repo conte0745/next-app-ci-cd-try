@@ -74,7 +74,7 @@ describe('ToDoアプリUI', () => {
       expect(screen.getByText('完了テスト')).toBeInTheDocument();
     });
     renderWithProvider(<TodoApp />);
-    const [input1] = [screen.getByTestId('todo-input')];
+    const [input1] = screen.getAllByTestId('todo-input');
     fireEvent.change(input1, { target: { value: 'テストタスク' } });
     fireEvent.click(screen.getAllByRole('button', { name: '追加' })[0]);
     await waitFor(() => {
