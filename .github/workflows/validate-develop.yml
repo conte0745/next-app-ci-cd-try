@@ -1,0 +1,17 @@
+name: Validate Develop
+
+on:
+  pull_request:
+    branches: [develop]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install deps
+        run: yarn install --frozen-lockfile
+
+      - name: Build
+        run: yarn build
