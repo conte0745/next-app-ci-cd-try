@@ -1,36 +1,103 @@
-# This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Next.js TODOアプリ
 
-## Getting Started
+このリポジトリは、Next.js + Chakra UI + Prisma + MySQL を用いたTODOアプリのサンプルです。
 
-First, run the development server:
+## 主な特徴
+- Next.js 15 (App Router)
+- Chakra UIによるモダンなUI
+- react-hook-formによるフォームバリデーション
+- Prisma ORM + MySQL
+- APIルートによるCRUD実装
+- テスト（Vitest + Testing Library）
+- GitHub ActionsによるCI/CD
+- AWS EC2 & pm2による本番運用想定
+- react-hot-toastによる通知
+
+---
+
+## セットアップ
+
+1. 依存パッケージのインストール
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+yarn install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. 環境変数の設定
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+`.env.local` にDB接続情報などを記載
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+```
+DATABASE_URL="mysql://user:password@host:3306/dbname"
+```
 
-## Learn More
+3. DBマイグレーション
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+yarn prisma migrate deploy
+# または
+npx prisma migrate dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+4. 開発サーバー起動
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+```bash
+yarn dev
+```
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## テスト
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+```bash
+yarn run test
+```
+
+---
+
+## CI/CD（GitHub Actions）
+
+- developブランチ: ビルドのみ実行
+- mainブランチ: ビルド＋テスト必須
+- タグ（v*）push時: ビルド＋テスト後、AWS EC2へ自動デプロイ
+
+CI/CDの設定は `.github/workflows/ci.yml` を参照
+
+---
+
+## デプロイ（AWS EC2 + pm2）
+
+1. EC2にNode.js, yarn, pm2, git, MySQL等をインストール
+2. GitHub SecretsにEC2の接続情報（`EC2_HOST`, `EC2_USER`, `EC2_SSH_KEY`）を登録
+3. `deploy/deploy.sh` に本番デプロイ処理を記述
+4. タグ（例: `v1.0.0`）をpushすると自動でデプロイされます
+
+### pm2とは？
+Node.jsアプリを常駐・自動再起動・ログ管理できるプロセスマネージャです。
+
+---
+
+## 技術スタック
+- Next.js
+- Chakra UI
+- React Hook Form
+- Prisma ORM
+- MySQL
+- react-hot-toast
+- Vitest / Testing Library
+- GitHub Actions
+- AWS EC2
+- pm2
+
+---
+
+## 開発Tips
+- 入力欄のref競合やAPIバリデーションはreact-hook-formで吸収
+- 通知はreact-hot-toastで統一
+- テストは`yarn run test`で全自動
+- デプロイはタグ運用で安全に本番反映
+
+---
+
+## ライセンス
+MIT
