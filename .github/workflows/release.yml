@@ -18,9 +18,11 @@ jobs:
 
       - name: デプロイコマンドをSSM経由で実行
         run: |
+          DEPLOY_BASE64=$(base64 -w 0 deploy/deploy.sh)
+
           aws ssm send-command \
             --instance-ids "${{ secrets.INSTANCE_ID }}" \
             --document-name "AWS-RunShellScript" \
             --comment "GitHub Actions デプロイ" \
-            --parameters commands=["cd /home/ec2-user/my-app", "bash deploy/deploy.sh"] \
+            --parameters commands="echo $DEPLOY_BASE64 | base64 -d > /home/ec2-user/deploy.sh && chmod +x /home/ec2-user/deploy.sh" \
             --output text

@@ -2,6 +2,8 @@
 
 set -e
 
+exec >> /var/log/deploy_$(date +%F_%H-%M-%S).log 2>&1
+
 APP_DIR="/home/ec2-user/my-app"
 TIMESTAMP=$(date +"%Y%m%d%H%M%S")
 BACKUP_FILE="$APP_DIR/db_backup_$TIMESTAMP.sql"
@@ -11,8 +13,6 @@ source /home/ec2-user/my-app/.env
 
 
 cd $APP_DIR
-
-cd /home/ec2-user/my-app
 
 echo "Pulling latest code..."
 git pull origin main
