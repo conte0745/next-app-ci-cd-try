@@ -1,42 +1,36 @@
 #!/bin/bash
+set -euxo pipefail
+exec >> /var/log/deploy.log 2>&1
 
-set -e
+echo "===== 🚀 デプロイ開始: $(date) ====="
 
-APP_DIR="/home/ec2-user/my-app"
-TIMESTAMP=$(date +"%Y%m%d%H%M%S")
-BACKUP_FILE="$APP_DIR/db_backup_$TIMESTAMP.sql"
+# 環境変数（.env）読み込み（必要に応じて）
+export NODE_ENV=production
 
-# .env ファイルを読み込む
-source /home/ec2-user/my-app/.env
+# アプリのディレクトリへ移動
+cd /home/ec2-user/myapp
 
-
-cd $APP_DIR
-
-cd /home/ec2-user/my-app
-
-echo "Pulling latest code..."
+# 最新のコードを取得（main ブランチ）
+echo "📦 Git Pull"
 git pull origin main
 
-echo "Installing dependencies..."
-yarn install
+# パッケージインストール
+echo "📦 yarn install"
+yarn install --frozen-lockfile
 
-echo "Building app..."
+# Prisma migration の実行
+echo "🧩 Prisma Migration"
+npx prisma generate
+npx prisma migrate deploy
+
+# ビルド
+echo "🔨 Next.js Build"
 yarn build
 
-echo "Restarting with PM2..."
-pm2 restart my-app
+# pm2 でアプリを再起動 or 初回起動
+echo "🟢 PM2 Restart"
+pm2 describe myapp > /dev/null \
+  && pm2 restart myapp \
+  || pm2 start yarn --name myapp -- start
 
-echo "📦 バックアップ開始..."
-mysqldump -h $DB_HOST -u $DB_USER -p$DB_PASS $DB_NAME > $BACKUP_FILE
-echo "✅ バックアップ完了: $BACKUP_FILE"
-
-echo "🔍 マイグレーションチェック..."
-if git diff --quiet HEAD^ -- prisma/migrations; then
-  echo "🟢 マイグレーションに差分なし"
-else
-  echo "🚀 Prisma マイグレーションを実行します"
-  yarn prisma migrate deploy
-fi
-
-echo "♻️ アプリを再起動します"
-pm2 restart my-app
+echo "===== ✅ デプロイ完了: $(date) ====="
