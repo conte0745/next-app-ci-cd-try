@@ -10,12 +10,8 @@ APP_DIR="/var/www/next-app"
 TIMESTAMP=$(date +"%Y%m%d%H%M%S")
 BACKUP_FILE="$APP_DIR/db_backup_$TIMESTAMP.sql"
 
-# 環境変数（.env）読み込み（必要に応じて）
-export NODE_ENV=production
-
 # アプリのディレクトリへ移動
 cd $APP_DIR
-
 
 echo "Pulling latest code..."
 # 最新のコードを取得（main ブランチ）
@@ -28,8 +24,7 @@ yarn install
 
 # Prisma migration の実行
 echo "🧩 Prisma Migration"
-npx prisma generate
-npx prisma migrate deploy
+yarn prisma:migrate:deploy
 
 # ビルド
 echo "🔨 Next.js Build"
