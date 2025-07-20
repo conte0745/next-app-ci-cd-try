@@ -21,7 +21,7 @@ export function Header() {
       gap={4}
     >
       <Heading size="md">
-        <Link href="/">ToDoアプリ v1.0.8</Link>
+        <Link href="/">ToDoアプリ v1.0.9</Link>
       </Heading>
       <Spacer />
       <Box>
