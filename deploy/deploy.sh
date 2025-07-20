@@ -7,6 +7,10 @@ APP_DIR="/var/www/next-app"
 TIMESTAMP=$(date +"%Y%m%d%H%M%S")
 BACKUP_FILE="$APP_DIR/backup/db_backup_$TIMESTAMP.sql"
 
+# Git所有権エラーを回避するための設定
+echo "🔧 Git設定の初期化"
+git config --global --add safe.directory /var/www/next-app
+
 # アプリのディレクトリへ移動
 cd $APP_DIR
 
