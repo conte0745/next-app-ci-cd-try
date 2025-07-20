@@ -21,7 +21,7 @@ git pull origin main
 
 # パッケージインストール
 echo "📦 yarn install"
-yarn install
+yarn install --immutable
 
 # Prisma migration の実行
 echo "🧩 Prisma Migration"
