@@ -16,6 +16,7 @@ echo "現在のディレクトリは: $(pwd)"
 echo "現在のディレクトリの所有者は: $(ls -ld $APP_DIR | awk '{print $3}')"
 echo "現在のディレクトリのグループは: $(ls -ld $APP_DIR | awk '{print $4}')"
 
+# キャッシュディレクトリの設定
 export YARN_CACHE_FOLDER=/var/cache/yarn
 export TMPDIR=/var/tmp
 mkdir -p $YARN_CACHE_FOLDER $TMPDIR
