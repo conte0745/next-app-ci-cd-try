@@ -1,4 +1,4 @@
-# Github Actions + AWS EC2 を利用して next.js アプリの CI/CD を構築してみた
+# Github Actions + AWS EC2 + AWS SSM を利用して next.js アプリの CI/CD を構築してみた
 
 ## はじめに
 
