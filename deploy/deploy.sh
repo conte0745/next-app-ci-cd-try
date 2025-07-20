@@ -47,7 +47,7 @@ echo "🔨 Next.js Build"
 yarn build
 
 # pm2 でアプリを再起動 or 初回起動
-export PM2_HOME="/opt/app/.pm2"
+export PM2_HOME="/opt/next-app/.pm2"
 echo "🟢 PM2 Restart"
 pm2 describe next-app > /dev/null \
   && pm2 restart next-app \
