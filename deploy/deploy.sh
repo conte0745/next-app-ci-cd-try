@@ -2,8 +2,8 @@
 set -euxo pipefail
 
 # SSM経由か手動実行かで出力先を切り替え
-if [ -n "$AWS_SSM_RUN" ] || [ ! -t 1 ]; then
-  # SSM経由（ttyなし or AWS_SSM_RUNがセットされている場合）はログファイルへ
+# 標準出力がttyでない場合（SSM経由実行時）はログファイルへ出力
+if [ ! -t 1 ]; then
   exec >> /var/log/deploy.log 2>&1
   echo "===== SSM経由で開始 ====="
 fi
