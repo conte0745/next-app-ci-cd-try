@@ -38,3 +38,7 @@ next-env.d.ts
 
 backup/*
 !.gitkeep
+
+# deploy
+pm2
+.pm2
