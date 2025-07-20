@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euxo pipefail
+set -euo pipefail
 
 echo "===== 🚀 デプロイ開始: $(date) ====="
 
