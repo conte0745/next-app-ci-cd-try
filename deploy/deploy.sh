@@ -18,7 +18,7 @@ echo "現在のディレクトリのグループは: $(ls -ld $APP_DIR | awk '{p
 
 # Git所有権エラーを回避するための設定
 echo "🔧 Git設定の初期化"
-git config --global --add safe.directory /var/www/next-app
+git config --add safe.directory /var/www/next-app
 
 echo "Pulling latest code..."
 # 最新のコードを取得（main ブランチ）
