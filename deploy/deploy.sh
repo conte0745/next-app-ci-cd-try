@@ -20,7 +20,6 @@ echo "現在のディレクトリのグループは: $(ls -ld $APP_DIR | awk '{p
 echo "🔧 Git状態確認"
 if [ -d ".git" ]; then
   echo "Gitリポジトリを検出しました。"
-  git config --add safe.directory /var/www/next-app
 else
   echo "Gitリポジトリが見つかりません。"
 fi

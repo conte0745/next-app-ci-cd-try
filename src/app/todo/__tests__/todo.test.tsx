@@ -69,8 +69,8 @@ describe('ToDoアプリUI', () => {
       });
     });
     renderWithProvider(<TodoApp />);
-    const input = screen.getByTestId('todo-input') as HTMLInputElement;
-    const button = screen.getByRole('button', { name: '追加' }) as HTMLButtonElement;
+    const input = screen.getByTestId('todo-input');
+    const button = screen.getByRole('button', { name: '追加' });
     await userEvent.type(input, 'リクエスト中テスト');
     // 送信
     await userEvent.click(button);
