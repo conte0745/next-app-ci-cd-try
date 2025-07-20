@@ -100,31 +100,76 @@ jobs:
       - name: デプロイ失敗通知
         if: failure()
         uses: actions/github-script@v7
+        env:
+          COMMAND_ID: ${{ steps.deploy.outputs.command_id }}
+          RESULT_DATA: ${{ steps.deploy.outputs.result }}
+          ERROR_DETAILS: ${{ steps.deploy.outputs.error_details }}
         with:
           script: |
-            let errorMessage = 'デプロイ中にエラーが発生しました';
-            let commandId = '${{ steps.deploy.outputs.command_id }}' || 'Unknown';
-            let resultData = '${{ steps.deploy.outputs.result }}' || '';
-            let errorDetails = '${{ steps.deploy.outputs.error_details }}' || '';
+            const commandId = process.env.COMMAND_ID || 'Unknown';
+            const resultData = process.env.RESULT_DATA || '';
+            const errorDetails = process.env.ERROR_DETAILS || '';
             
             console.log('Command ID:', commandId);
-            console.log('Result Data:', resultData);
+            console.log('Result Data length:', resultData.length);
             console.log('Error Details:', errorDetails);
             
+            let errorMessage = 'デプロイ中にエラーが発生しました';
+            
             try {
-              if (resultData && resultData !== '') {
+              if (resultData && resultData.trim() !== '') {
                 const result = JSON.parse(resultData);
-                const output = result.StandardOutputContent || 'No output';
-                const error = result.StandardErrorContent || 'No errors';
+                const output = (result.StandardOutputContent || 'No output').replace(/[\r\n]+/g, '\n');
+                const error = (result.StandardErrorContent || 'No errors').replace(/[\r\n]+/g, '\n');
                 
-                errorMessage = `## ❌ デプロイ失敗\n\n**コマンドID:** ${commandId}\n\n**ステータス:** ${result.Status}\n\n**標準出力:**\n\`\`\`\n${output.slice(0, 500)}${output.length > 500 ? '\n... (truncated)' : ''}\n\`\`\`\n\n**エラー出力:**\n\`\`\`\n${error.slice(0, 500)}${error.length > 500 ? '\n... (truncated)' : ''}\n\`\`\`\n\n**タイムスタンプ:** ${new Date().toISOString()}`;
+                errorMessage = [
+                  '## ❌ デプロイ失敗',
+                  '',
+                  `**コマンドID:** ${commandId}`,
+                  `**ステータス:** ${result.Status}`,
+                  '',
+                  '**標準出力:**',
+                  '```',
+                  output.slice(0, 500) + (output.length > 500 ? '\n... (truncated)' : ''),
+                  '```',
+                  '',
+                  '**エラー出力:**',
+                  '```',
+                  error.slice(0, 500) + (error.length > 500 ? '\n... (truncated)' : ''),
+                  '```',
+                  '',
+                  `**タイムスタンプ:** ${new Date().toISOString()}`
+                ].join('\n');
               } else {
-                // 結果データがない場合のフォールバック
-                errorMessage = `## ❌ デプロイ失敗\n\n**コマンドID:** ${commandId}\n\n**エラー:** SSMコマンドの実行または結果取得に失敗しました\n\n**詳細:**\n\`\`\`\n${errorDetails || 'No additional details available'}\n\`\`\`\n\n**タイムスタンプ:** ${new Date().toISOString()}`;
+                errorMessage = [
+                  '## ❌ デプロイ失敗',
+                  '',
+                  `**コマンドID:** ${commandId}`,
+                  '**エラー:** SSMコマンドの実行または結果取得に失敗しました',
+                  '',
+                  '**詳細:**',
+                  '```',
+                  errorDetails || 'No additional details available',
+                  '```',
+                  '',
+                  `**タイムスタンプ:** ${new Date().toISOString()}`
+                ].join('\n');
               }
             } catch (e) {
-              console.error('JSON parse error:', e);
-              errorMessage = `## ❌ デプロイ失敗\n\n**コマンドID:** ${commandId}\n\n**エラー:** 実行結果の解析に失敗しました\n\n**Raw Data:**\n\`\`\`\n${resultData.slice(0, 500)}${resultData.length > 500 ? '\n... (truncated)' : ''}\n\`\`\`\n\n**タイムスタンプ:** ${new Date().toISOString()}`;
+              console.error('JSON parse error:', e.message);
+              errorMessage = [
+                '## ❌ デプロイ失敗',
+                '',
+                `**コマンドID:** ${commandId}`,
+                '**エラー:** 実行結果の解析に失敗しました',
+                '',
+                '**エラー詳細:**',
+                '```',
+                e.message,
+                '```',
+                '',
+                `**タイムスタンプ:** ${new Date().toISOString()}`
+              ].join('\n');
             }
             
             await github.rest.repos.createCommitComment({
