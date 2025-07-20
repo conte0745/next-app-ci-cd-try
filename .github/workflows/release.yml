@@ -3,6 +3,11 @@ name: Deploy via SSM
 
 on:
   workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+    branches:
+      - main
 
 jobs:
   deploy:
@@ -23,5 +28,5 @@ jobs:
             --instance-ids "${{ secrets.INSTANCE_ID }}" \
             --document-name "AWS-RunShellScript" \
             --comment "GitHub Actions デプロイ" \
-            --parameters commands='["/var/www/next-app/deploy/deploy.sh"]' \
+            --parameters commands='["sh /var/www/next-app/deploy/deploy.sh"]' \
             --output text
