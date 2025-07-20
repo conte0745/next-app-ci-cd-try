@@ -55,20 +55,27 @@ jobs:
             --command-id "$COMMAND_ID" \
             --instance-id "${{ secrets.INSTANCE_ID }}" \
             --query '{Status:Status,StandardOutputContent:StandardOutputContent,StandardErrorContent:StandardErrorContent}' \
-            --output json)
+            --output json 2>/dev/null || echo '{"Status":"Failed","StandardOutputContent":"Command invocation not found","StandardErrorContent":"Unable to retrieve command result"}')
           
           echo "実行結果:"
-          echo "$RESULT" | jq .
+          echo "$RESULT" | jq . || echo "$RESULT"
           
-          # 結果をGitHub Outputに保存
+          # 結果をGitHub Outputに保存（常に有効なJSONを保証）
           echo "result<<EOF" >> $GITHUB_OUTPUT
           echo "$RESULT" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
           
           # ステータスを確認して終了コードを設定
-          FINAL_STATUS=$(echo "$RESULT" | jq -r '.Status')
+          FINAL_STATUS=$(echo "$RESULT" | jq -r '.Status' 2>/dev/null || echo "Failed")
+          echo "Final Status: $FINAL_STATUS"
+          
           if [ "$FINAL_STATUS" != "Success" ]; then
             echo "デプロイが失敗しました: $FINAL_STATUS"
+            # エラー情報を追加で出力
+            echo "error_details<<EOF" >> $GITHUB_OUTPUT
+            echo "Status: $FINAL_STATUS" >> $GITHUB_OUTPUT
+            echo "Result: $RESULT" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
             exit 1
           fi
           
@@ -96,16 +103,28 @@ jobs:
         with:
           script: |
             let errorMessage = 'デプロイ中にエラーが発生しました';
-            let commandId = '${{ steps.deploy.outputs.command_id }}';
+            let commandId = '${{ steps.deploy.outputs.command_id }}' || 'Unknown';
+            let resultData = '${{ steps.deploy.outputs.result }}' || '';
+            let errorDetails = '${{ steps.deploy.outputs.error_details }}' || '';
+            
+            console.log('Command ID:', commandId);
+            console.log('Result Data:', resultData);
+            console.log('Error Details:', errorDetails);
             
             try {
-              const result = JSON.parse(`${{ steps.deploy.outputs.result }}`);
-              const output = result.StandardOutputContent || 'No output';
-              const error = result.StandardErrorContent || 'No errors';
-              
-              errorMessage = `## ❌ デプロイ失敗\n\n**コマンドID:** ${commandId}\n\n**ステータス:** ${result.Status}\n\n**標準出力:**\n\`\`\`\n${output.slice(0, 500)}${output.length > 500 ? '\n... (truncated)' : ''}\n\`\`\`\n\n**エラー出力:**\n\`\`\`\n${error.slice(0, 500)}${error.length > 500 ? '\n... (truncated)' : ''}\n\`\`\`\n\n**タイムスタンプ:** ${new Date().toISOString()}`;
+              if (resultData && resultData !== '') {
+                const result = JSON.parse(resultData);
+                const output = result.StandardOutputContent || 'No output';
+                const error = result.StandardErrorContent || 'No errors';
+                
+                errorMessage = `## ❌ デプロイ失敗\n\n**コマンドID:** ${commandId}\n\n**ステータス:** ${result.Status}\n\n**標準出力:**\n\`\`\`\n${output.slice(0, 500)}${output.length > 500 ? '\n... (truncated)' : ''}\n\`\`\`\n\n**エラー出力:**\n\`\`\`\n${error.slice(0, 500)}${error.length > 500 ? '\n... (truncated)' : ''}\n\`\`\`\n\n**タイムスタンプ:** ${new Date().toISOString()}`;
+              } else {
+                // 結果データがない場合のフォールバック
+                errorMessage = `## ❌ デプロイ失敗\n\n**コマンドID:** ${commandId}\n\n**エラー:** SSMコマンドの実行または結果取得に失敗しました\n\n**詳細:**\n\`\`\`\n${errorDetails || 'No additional details available'}\n\`\`\`\n\n**タイムスタンプ:** ${new Date().toISOString()}`;
+              }
             } catch (e) {
-              errorMessage = `## ❌ デプロイ失敗\n\n**コマンドID:** ${commandId}\n\n**エラー:** 実行結果の取得に失敗しました\n\n**タイムスタンプ:** ${new Date().toISOString()}`;
+              console.error('JSON parse error:', e);
+              errorMessage = `## ❌ デプロイ失敗\n\n**コマンドID:** ${commandId}\n\n**エラー:** 実行結果の解析に失敗しました\n\n**Raw Data:**\n\`\`\`\n${resultData.slice(0, 500)}${resultData.length > 500 ? '\n... (truncated)' : ''}\n\`\`\`\n\n**タイムスタンプ:** ${new Date().toISOString()}`;
             }
             
             await github.rest.repos.createCommitComment({
