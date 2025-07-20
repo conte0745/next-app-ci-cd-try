@@ -5,13 +5,14 @@ set -euxo pipefail
 if [ -n "$AWS_SSM_RUN" ] || [ ! -t 1 ]; then
   # SSM経由（ttyなし or AWS_SSM_RUNがセットされている場合）はログファイルへ
   exec >> /var/log/deploy.log 2>&1
+  echo "===== SSM経由で開始 ====="
 fi
 
 echo "===== 🚀 デプロイ開始: $(date) ====="
 
 APP_DIR="/var/www/next-app"
 TIMESTAMP=$(date +"%Y%m%d%H%M%S")
-BACKUP_FILE="$APP_DIR/db_backup_$TIMESTAMP.sql"
+BACKUP_FILE="$APP_DIR/backup/db_backup_$TIMESTAMP.sql"
 
 # アプリのディレクトリへ移動
 cd $APP_DIR
