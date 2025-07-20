@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 // GET: 一覧取得
 export async function GET() {
@@ -11,8 +9,9 @@ export async function GET() {
       orderBy: { id: 'desc' },
     });
     return NextResponse.json(todos);
-  } catch (error: any) {
-    return NextResponse.json({ error: 'データベース接続エラー: ' + (error?.message || error) }, { status: 500 });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: 'データベース接続エラー: ' + errorMessage }, { status: 500 });
   }
 }
 
@@ -25,8 +24,9 @@ export async function POST(req: Request) {
     }
     const todo = await prisma.todo.create({ data: { title } });
     return NextResponse.json(todo);
-  } catch (error: any) {
-    return NextResponse.json({ error: 'データベース接続エラー: ' + (error?.message || error) }, { status: 500 });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: 'データベース接続エラー: ' + errorMessage }, { status: 500 });
   }
 }
 
@@ -39,8 +39,9 @@ export async function PATCH(req: Request) {
     }
     const todo = await prisma.todo.update({ where: { id }, data: { completed } });
     return NextResponse.json(todo);
-  } catch (error: any) {
-    return NextResponse.json({ error: 'データベース接続エラー: ' + (error?.message || error) }, { status: 500 });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: 'データベース接続エラー: ' + errorMessage }, { status: 500 });
   }
 }
 
@@ -53,7 +54,8 @@ export async function DELETE(req: Request) {
     }
     await prisma.todo.update({ where: { id }, data: { isDeleted: true } });
     return NextResponse.json({ ok: true });
-  } catch (error: any) {
-    return NextResponse.json({ error: 'データベース接続エラー: ' + (error?.message || error) }, { status: 500 });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: 'データベース接続エラー: ' + errorMessage }, { status: 500 });
   }
 }

@@ -18,7 +18,7 @@ describe('ToDoアプリUI', () => {
       new Response(JSON.stringify([]), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
-      })
+      }),
     );
     renderWithProvider(<TodoApp />);
     const button = screen.getByRole('button', { name: '追加' });
@@ -31,7 +31,7 @@ describe('ToDoアプリUI', () => {
       new Response(JSON.stringify([]), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
-      })
+      }),
     );
     renderWithProvider(<TodoApp />);
     const input = screen.getByTestId('todo-input');
@@ -58,7 +58,7 @@ describe('ToDoアプリUI', () => {
             new Response(JSON.stringify([]), {
               status: 200,
               headers: { 'Content-Type': 'application/json' },
-            })
+            }),
           );
         });
       }
