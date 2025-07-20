@@ -3,6 +3,11 @@ name: Deploy via SSM
 
 on:
   workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - main
 
 jobs:
   deploy:
