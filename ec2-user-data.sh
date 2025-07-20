@@ -14,22 +14,22 @@ mkdir -p /var/www
 cd /var/www
 git clone https://github.com/conte0745/next-app-ci-cd-try.git next-app
 
-# ① ユーザ/グループ作成（存在しない場合）
+# ユーザ/グループ作成（存在しない場合）
 sudo sudo useradd -m ssm-user
 sudo groupadd deploy-group
 
-# ② ユーザーをグループに追加
+# ユーザーをグループに追加
 sudo usermod -aG deploy-group ec2-user
 sudo usermod -aG deploy-group ssm-user
 
-# ③ next-app 配下のグループ所有者を変更
+# next-app 配下のグループ所有者を変更
 sudo chown -R :deploy-group /var/www
 sudo chown -R :deploy-group /var/www/next-app
 
-# ④ グループに書き込み権限を付与
+# グループに書き込み権限を付与
 sudo chmod -R g+rw /var/www/next-app
 
-# ⑤ ディレクトリに「setgid」ビットを設定（以後作られるファイルもグループ継承）
+# ディレクトリに「setgid」ビットを設定（以後作られるファイルもグループ継承）
 sudo find /var/www/next-app -type d -exec chmod g+s {} \;
 
 # nodejsをインストール
@@ -45,6 +45,8 @@ sudo npm install -g yarn
 sudo dnf -y install https://dev.mysql.com/get/mysql84-community-release-el9-1.noarch.rpm
 sudo dnf -y install mysql mysql-community-client
 sudo dnf -y install mysql-community-server
+
+# MySQLを起動
 sudo systemctl enable mysqld
 sudo systemctl start mysqld
 

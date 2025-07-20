@@ -1,0 +1,42 @@
+@startuml
+skinparam linetype ortho
+skinparam defaultTextAlignment center
+skinparam NoteTextAlignment left
+skinparam rectangle {
+  BackgroundColor White
+  BorderColor Black
+  FontSize 12
+  RoundCorner 15
+}
+
+actor Developer
+
+rectangle "GitHub Repository" {
+  rectangle "GitHub Actions\nCI/CD Workflow" as Actions
+}
+
+rectangle "AWS" {
+  rectangle "AWS Systems Manager\n(SSM)" as SSM
+  rectangle "EC2 Instance\n(Next.js App)" as EC2
+}
+
+Developer --> Actions : git push tag がトリガー
+Actions --> SSM : session 開始 \n(AWS-StartPortForwardingSession)
+SSM --> EC2 : deploy.sh 実行 \n(build, migrate, restart)
+
+note right of Actions
+以下のファイルに従ったActionsをgithubが行う
+- validate-develop.yml
+- validate-main.yml
+- release.yml
+end note
+
+note right of EC2
+deploy.sh は以下を行う.
+- git pull
+- yarn install
+- prisma migrate
+- yarn build
+- pm2 restart
+end note
+@enduml
