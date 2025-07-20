@@ -259,6 +259,11 @@ Windsurf には 2 週間（100クレジット分）の無料トライアルが�
 
 ![windsurf](img/windsurf.png)
 
+
+ちなみに、作成したアプリはTODOアプリです。sonarlintやeslint、prettier、vitestを導入して、コード品質を保ちながら開発を行いました。MySQLと連携したCRUDができます。
+
+![todo](img/todo_app.png)
+
 ## 終わりに
 
 以上で、CI/CDの設定が完了しました。
