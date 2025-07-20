@@ -29,7 +29,7 @@ jobs:
             --instance-ids "${{ secrets.INSTANCE_ID }}" \
             --document-name "AWS-RunShellScript" \
             --comment "GitHub Actions デプロイ" \
-            --parameters commands='["sh /var/www/next-app/deploy/deploy.sh"]' \
+            --parameters commands='["sh /opt/next-app/deploy/deploy.sh"]' \
             --output text --query 'Command.CommandId')
 
           echo "Command ID: $COMMAND_ID"

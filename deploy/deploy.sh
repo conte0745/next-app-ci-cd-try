@@ -3,7 +3,7 @@ set -euo pipefail
 
 echo "===== 🚀 デプロイ開始: $(date) ====="
 
-APP_DIR="/var/www/next-app"
+APP_DIR="/opt/next-app"
 TIMESTAMP=$(date +"%Y%m%d%H%M%S")
 BACKUP_FILE="$APP_DIR/backup/db_backup_$TIMESTAMP.sql"
 

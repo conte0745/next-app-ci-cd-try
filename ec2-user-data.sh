@@ -10,8 +10,7 @@ sudo dnf upgrade -y --releasever=2023.8.20250715
 sudo dnf install -y git
 sudo git config --global user.name "conte0745" 
 sudo git config --global user.email "ryoya15662@gmail.com"
-mkdir -p /var/www
-cd /var/www
+cd /opt
 git clone https://github.com/conte0745/next-app-ci-cd-try.git next-app
 
 # ユーザ/グループ作成（存在しない場合）
@@ -22,15 +21,18 @@ sudo groupadd deploy-group
 sudo usermod -aG deploy-group ec2-user
 sudo usermod -aG deploy-group ssm-user
 
+# pm2のホームディレクトリを作成
+sudo mkdir -p /opt/next-app/.pm2
+sudo chown -R :deploy-group /opt/next-app/.pm2
+
 # next-app 配下のグループ所有者を変更
-sudo chown -R :deploy-group /var/www
-sudo chown -R :deploy-group /var/www/next-app
+sudo chown -R :deploy-group /opt/next-app
 
 # グループに書き込み権限を付与
-sudo chmod -R g+rw /var/www/next-app
+sudo chmod -R g+rw /opt/next-app
 
 # ディレクトリに「setgid」ビットを設定（以後作られるファイルもグループ継承）
-sudo find /var/www/next-app -type d -exec chmod g+s {} \;
+sudo find /opt/next-app -type d -exec chmod g+s {} \;
 
 # nodejsをインストール
 sudo curl -fsSL https://rpm.nodesource.com/setup_22.x | sudo bash -
@@ -68,4 +70,4 @@ sudo dnf update -y
 sudo dnf upgrade -y
 
 # .envファイルを編集して設定情報を更新して下さい
-sudo cp /var/www/next-app/.env.example /var/www/next-app/.env
+sudo cp /opt/next-app/.env.example /opt/next-app/.env
