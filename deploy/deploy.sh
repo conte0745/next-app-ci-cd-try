@@ -4,8 +4,6 @@ exec >> /var/log/deploy.log 2>&1
 
 echo "===== 🚀 デプロイ開始: $(date) ====="
 
-exec >> /var/log/deploy_$(date +%F_%H-%M-%S).log 2>&1
-
 APP_DIR="/var/www/next-app"
 TIMESTAMP=$(date +"%Y%m%d%H%M%S")
 BACKUP_FILE="$APP_DIR/db_backup_$TIMESTAMP.sql"
