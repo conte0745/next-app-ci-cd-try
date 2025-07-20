@@ -1,6 +1,11 @@
 #!/bin/bash
 set -euxo pipefail
-exec >> /var/log/deploy.log 2>&1
+
+# SSM経由か手動実行かで出力先を切り替え
+if [ -n "$AWS_SSM_RUN" ] || [ ! -t 1 ]; then
+  # SSM経由（ttyなし or AWS_SSM_RUNがセットされている場合）はログファイルへ
+  exec >> /var/log/deploy.log 2>&1
+fi
 
 echo "===== 🚀 デプロイ開始: $(date) ====="
 
