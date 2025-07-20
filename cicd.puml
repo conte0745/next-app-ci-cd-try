@@ -15,7 +15,7 @@ rectangle "GitHub Repository" {
   rectangle "GitHub Actions\nCI/CD Workflow" as Actions
 }
 
-rectangle "AWS" {
+rectangle "AWS Environment" {
   rectangle "AWS Systems Manager\n(SSM)" as SSM
   rectangle "EC2 Instance\n(Next.js App)" as EC2
 }
