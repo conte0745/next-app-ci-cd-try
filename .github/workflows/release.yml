@@ -6,8 +6,6 @@ on:
   push:
     tags:
       - "v*"
-    branches:
-      - main # mainブランチ上のタグのみ発火
 
 jobs:
   deploy:
