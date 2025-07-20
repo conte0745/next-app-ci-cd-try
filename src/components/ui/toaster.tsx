@@ -1,6 +1,6 @@
-"use client"
+'use client';
 
-import { Toaster as HotToaster, toast } from "react-hot-toast";
+import { Toaster as HotToaster, toast } from 'react-hot-toast';
 
 // Chakra UIのtoasterは廃止
 // react-hot-toastのtoast関数を利用してください
