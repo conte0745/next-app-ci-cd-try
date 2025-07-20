@@ -53,4 +53,10 @@ pm2 describe next-app > /dev/null \
   && pm2 restart next-app \
   || pm2 start yarn --name next-app -- start
 
+# pm2の設定を保存
+pm2 save
+
+# pm2の起動設定を保存
+pm2 startup
+
 echo "===== ✅ デプロイ完了: $(date) ====="
