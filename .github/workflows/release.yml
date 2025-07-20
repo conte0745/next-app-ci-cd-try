@@ -86,17 +86,59 @@ jobs:
       - name: デプロイ成功通知
         if: success()
         uses: actions/github-script@v7
+        env:
+          COMMAND_ID: ${{ steps.deploy.outputs.command_id }}
+          RESULT_DATA: ${{ steps.deploy.outputs.result }}
         with:
           script: |
-            const result = JSON.parse(`${{ steps.deploy.outputs.result }}`);
-            const output = result.StandardOutputContent || 'No output';
-            const error = result.StandardErrorContent || 'No errors';
+            const commandId = process.env.COMMAND_ID || 'Unknown';
+            const resultData = process.env.RESULT_DATA || '';
+            
+            let deployOutput = 'No output available';
+            let deployError = '';
+            
+            try {
+              if (resultData && resultData.trim() !== '') {
+                const result = JSON.parse(resultData);
+                deployOutput = (result.StandardOutputContent || 'No output').trim();
+                deployError = (result.StandardErrorContent || '').trim();
+              }
+            } catch (error) {
+              console.log('Failed to parse result data:', error);
+              deployOutput = 'Failed to parse deployment result';
+            }
+            
+            // デプロイログを整形して表示（最大3000文字）
+            const maxLength = 3000;
+            const truncatedOutput = deployOutput.length > maxLength 
+              ? deployOutput.slice(0, maxLength) + '\n\n... (以下略)'
+              : deployOutput;
+            
+            let body = [
+              '## ✅ デプロイ成功',
+              '',
+              `**コマンドID:** ${commandId}`,
+              `**実行時刻:** ${new Date().toISOString()}`,
+              '',
+              '**デプロイログ:**',
+              '```',
+              truncatedOutput,
+              '```'
+            ];
+            
+            // エラーがある場合は追加表示
+            if (deployError) {
+              const truncatedError = deployError.length > 1000 
+                ? deployError.slice(0, 1000) + '\n\n... (以下略)'
+                : deployError;
+              body.push('', '**エラー情報:**', '```', truncatedError, '```');
+            }
             
             await github.rest.repos.createCommitComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               commit_sha: context.sha,
-              body: `## ✅ デプロイ成功\n\n**コマンドID:** ${{ steps.deploy.outputs.command_id }}\n\n**実行結果:**\n\`\`\`\n${output.slice(0, 1000)}${output.length > 1000 ? '\n... (truncated)' : ''}\n\`\`\`\n\n**タイムスタンプ:** ${new Date().toISOString()}`
+              body: body.join('\n')
             });
 
       - name: デプロイ失敗通知
@@ -121,27 +163,38 @@ jobs:
             try {
               if (resultData && resultData.trim() !== '') {
                 const result = JSON.parse(resultData);
-                const output = (result.StandardOutputContent || 'No output').replace(/[\r\n]+/g, '\n');
-                const error = (result.StandardErrorContent || 'No errors').replace(/[\r\n]+/g, '\n');
+                const deployOutput = (result.StandardOutputContent || 'No output').trim();
+                const deployError = (result.StandardErrorContent || '').trim();
                 
-                errorMessage = [
+                // デプロイログを整形して表示（最大2000文字）
+                const maxOutputLength = 2000;
+                const truncatedOutput = deployOutput.length > maxOutputLength 
+                  ? deployOutput.slice(0, maxOutputLength) + '\n\n... (以下略)'
+                  : deployOutput;
+                
+                let body = [
                   '## ❌ デプロイ失敗',
                   '',
                   `**コマンドID:** ${commandId}`,
                   `**ステータス:** ${result.Status}`,
+                  `**実行時刻:** ${new Date().toISOString()}`,
                   '',
-                  '**標準出力:**',
+                  '**デプロイログ:**',
                   '```',
-                  output.slice(0, 500) + (output.length > 500 ? '\n... (truncated)' : ''),
-                  '```',
-                  '',
-                  '**エラー出力:**',
-                  '```',
-                  error.slice(0, 500) + (error.length > 500 ? '\n... (truncated)' : ''),
-                  '```',
-                  '',
-                  `**タイムスタンプ:** ${new Date().toISOString()}`
-                ].join('\n');
+                  truncatedOutput,
+                  '```'
+                ];
+                
+                // エラー情報がある場合は追加表示
+                if (deployError) {
+                  const maxErrorLength = 1000;
+                  const truncatedError = deployError.length > maxErrorLength 
+                    ? deployError.slice(0, maxErrorLength) + '\n\n... (以下略)'
+                    : deployError;
+                  body.push('', '**エラー情報:**', '```', truncatedError, '```');
+                }
+                
+                errorMessage = body.join('\n');
               } else {
                 errorMessage = [
                   '## ❌ デプロイ失敗',
