@@ -6,6 +6,8 @@ on:
   push:
     tags:
       - "v*"
+    branches:
+      - main # mainブランチ上のタグのみ発火
 
 jobs:
   deploy:
@@ -31,10 +33,10 @@ jobs:
             --comment "GitHub Actions デプロイ" \
             --parameters commands='["sh /var/www/next-app/deploy/deploy.sh"]' \
             --output text --query 'Command.CommandId')
-          
+
           echo "Command ID: $COMMAND_ID"
           echo "command_id=$COMMAND_ID" >> $GITHUB_OUTPUT
-          
+
           # コマンドの完了を待機（最大10分）
           echo "デプロイコマンドの実行を開始しました..."
           for i in {1..60}; do
@@ -51,26 +53,26 @@ jobs:
             
             sleep 10
           done
-          
+
           # 実行結果を取得
           RESULT=$(aws ssm get-command-invocation \
             --command-id "$COMMAND_ID" \
             --instance-id "${{ secrets.INSTANCE_ID }}" \
             --query '{Status:Status,StandardOutputContent:StandardOutputContent,StandardErrorContent:StandardErrorContent}' \
             --output json 2>/dev/null || echo '{"Status":"Failed","StandardOutputContent":"Command invocation not found","StandardErrorContent":"Unable to retrieve command result"}')
-          
+
           echo "実行結果:"
           echo "$RESULT" | jq . || echo "$RESULT"
-          
+
           # 結果をGitHub Outputに保存（常に有効なJSONを保証）
           echo "result<<EOF" >> $GITHUB_OUTPUT
           echo "$RESULT" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-          
+
           # ステータスを確認して終了コードを設定
           FINAL_STATUS=$(echo "$RESULT" | jq -r '.Status' 2>/dev/null || echo "Failed")
           echo "Final Status: $FINAL_STATUS"
-          
+
           if [ "$FINAL_STATUS" != "Success" ]; then
             echo "デプロイが失敗しました: $FINAL_STATUS"
             # エラー情報を追加で出力
@@ -80,7 +82,7 @@ jobs:
             echo "EOF" >> $GITHUB_OUTPUT
             exit 1
           fi
-          
+
           echo "デプロイが正常に完了しました"
 
       - name: デプロイ成功通知
@@ -93,10 +95,10 @@ jobs:
           script: |
             const commandId = process.env.COMMAND_ID || 'Unknown';
             const resultData = process.env.RESULT_DATA || '';
-            
+
             let deployOutput = 'No output available';
             let deployError = '';
-            
+
             try {
               if (resultData && resultData.trim() !== '') {
                 const result = JSON.parse(resultData);
@@ -107,13 +109,13 @@ jobs:
               console.log('Failed to parse result data:', error);
               deployOutput = 'Failed to parse deployment result';
             }
-            
+
             // デプロイログを整形して表示（最大3000文字）
             const maxLength = 3000;
             const truncatedOutput = deployOutput.length > maxLength 
               ? deployOutput.slice(0, maxLength) + '\n\n... (以下略)'
               : deployOutput;
-            
+
             let body = [
               '## ✅ デプロイ成功',
               '',
@@ -125,7 +127,7 @@ jobs:
               truncatedOutput,
               '```'
             ];
-            
+
             // エラーがある場合は追加表示
             if (deployError) {
               const truncatedError = deployError.length > 1000 
@@ -133,7 +135,7 @@ jobs:
                 : deployError;
               body.push('', '**エラー情報:**', '```', truncatedError, '```');
             }
-            
+
             await github.rest.repos.createCommitComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -153,13 +155,13 @@ jobs:
             const commandId = process.env.COMMAND_ID || 'Unknown';
             const resultData = process.env.RESULT_DATA || '';
             const errorDetails = process.env.ERROR_DETAILS || '';
-            
+
             console.log('Command ID:', commandId);
             console.log('Result Data length:', resultData.length);
             console.log('Error Details:', errorDetails);
-            
+
             let errorMessage = 'デプロイ中にエラーが発生しました';
-            
+
             try {
               if (resultData && resultData.trim() !== '') {
                 const result = JSON.parse(resultData);
@@ -226,7 +228,7 @@ jobs:
                 `**タイムスタンプ:** ${new Date().toISOString()}`
               ].join('\n');
             }
-            
+
             await github.rest.repos.createCommitComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
