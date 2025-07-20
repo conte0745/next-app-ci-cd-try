@@ -16,9 +16,14 @@ echo "現在のディレクトリは: $(pwd)"
 echo "現在のディレクトリの所有者は: $(ls -ld $APP_DIR | awk '{print $3}')"
 echo "現在のディレクトリのグループは: $(ls -ld $APP_DIR | awk '{print $4}')"
 
-# Git所有権エラーを回避するための設定
-# echo "🔧 Git設定の初期化"
-# git config --add safe.directory /var/www/next-app
+# Git所有権確認（所有者統一後は原則不要）
+echo "🔧 Git状態確認"
+if [ -d ".git" ]; then
+  echo "Gitリポジトリを検出しました。"
+  git config --add safe.directory /var/www/next-app
+else
+  echo "Gitリポジトリが見つかりません。"
+fi
 
 echo "Pulling latest code..."
 # 最新のコードを取得（main ブランチ）
