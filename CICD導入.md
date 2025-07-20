@@ -249,6 +249,15 @@ sudo mysql -u root -p8IG6nGdCg6!$ -e "GRANT ALL PRIVILEGES ON next_db.* TO 'appu
 sudo mysql -u root -p8IG6nGdCg6!$ -e "FLUSH PRIVILEGES;"
 ```
 
+### 利用したAIについて
+
+今回は ChatGPT と Windsurf（Claude Sonnet 4）を利用しました。
+Windsurf には 2 週間（100クレジット分）の無料トライアルが残っていたため、主にコードの修正や改善に活用しました。
+途中で面倒になり、エラーコードをそのまま丸投げしてしまい、多少クレジットを無駄にしてしまった感はありますが、それでも雑に投げた内容からしっかりと解決策を導き出してくれたので、結果的には満足しています。
+
+結果使ったのは、75クレジットでした。（大体400円くらい?。）
+
+![windsurf](img/windsurf.png)
 
 ## 終わりに
 
