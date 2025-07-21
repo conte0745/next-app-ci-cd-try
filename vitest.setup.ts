@@ -21,3 +21,4 @@ if (!window.matchMedia) {
 if (!globalThis.structuredClone) {
   globalThis.structuredClone = (obj: any) => JSON.parse(JSON.stringify(obj));
 }
+

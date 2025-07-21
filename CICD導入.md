@@ -34,6 +34,11 @@
 
 ![cicd_overview](img/cicd_overview.png)
 
+
+### 採用する運用フロー
+
+![github_flow](img/github_flow.png)
+
 ## 目次
 
 - [はじめに](#はじめに)
